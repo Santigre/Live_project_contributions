@@ -1,0 +1,142 @@
+﻿
+@model IEnumerable<JobPlacementDashboard.Models.JPNotification>
+
+<script type="text/javascript">
+    function emailStudents() {
+        var txt = prompt("Is the email about Graduating or Hire?");
+        if (txt.toLowerCase() == "graduating") {
+            return true;
+        }
+        else if (txt.toLowerCase() == "hire") {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+</script>
+
+<div class="container">
+    <div class="col-lg-12">
+        @using (Html.BeginForm("JpNotifications", "Update", FormMethod.Get))
+        {
+
+            <div id="SearchContainerNet" class="JPNotificationsSearchBar">
+                <div class="row">
+                    <div class="form-group">
+                        <div id="updateSearchBar">
+                            <div id="custom-search-input">
+                                <div class="input-group">
+                                    <input type="search" name="keyword" class="input-lg JPNotificationsSearchBar" placeholder="Enter keyword to filter" />
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-info btn-lg" type="submit">
+                                            <i class="fa fa-search"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                            @Html.ActionLink("Reset", "JpNotifications", Model, new { @class = "btn btn-primary", @id = "resetBtn" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    @Html.ValidationSummary()
+
+    <div class="col-lg-12">
+        @using (Html.BeginForm())
+        {
+            <div class="btn-group btn-xs JPNotificationsDropdown">
+                @{var queryString = HttpContext.Current.Request.QueryString.ToString();}
+
+                @if (queryString == "sortOrder=Graduates")
+                {
+                    <button class="btn btn-sm filter-btn" id="filter-btn-title" type="button">Filtering by: Graduates</button>
+                }
+                else if (queryString == "sortOrder=Hires")
+                {
+                    <button class="btn btn-sm filter-btn" id="filter-btn-title" type="button">Filtering by: Hires</button>
+                }
+                else
+                {
+                    <button class="btn btn-sm filter-btn" id="filter-btn-title" type="button">Filter</button>
+                }
+                <button class="btn btn-sm dropdown-toggle filter-btn" id="filter-btn-toggle" data-toggle="dropdown" type="button"><span class="fa fa-caret-down"></span></button>
+                <div class="dropdown-menu item-wrapper" style="width: 60px">
+                    @*@Html.ActionLink("None", "Update", new { sortOrder = ViewBag.NoneFilter, currentFilter = ViewBag.CurrentFilter }, new { id = "none-filter", @class = "dropdown-item checklist-item" })*@
+                    @Html.ActionLink("Graduates", "Update", new { sortOrder = ViewBag.GraduateFilter, currentFilter = ViewBag.CurrentFilter }, new { id = "grad-filter", @class = "dropdown-item checklist-item" })
+                    @Html.ActionLink("Hires", "Update", new { sortOrder = ViewBag.HireFilter, currentFilter = ViewBag.CurrentFilter }, new { id = "hire-filter", @class = "dropdown-item checklist-item" })
+                </div>
+            </div>
+        }
+            <table class="table">
+                <tr>
+                    <th class="table-headers fixed text-left">
+                        @Html.ActionLink("Name", "Update")
+                    </th>
+                    <th class="table-headers fixed">
+                        @Html.ActionLink("Graduate", "Update", new { sortOrder = ViewBag.GraduateSortParm, currentFilter = ViewBag.CurrentFilter })
+                    </th>
+                    <th class="table-headers fixed">
+                        @Html.ActionLink("Hire", "Update", new { sortOrder = ViewBag.HireSortParm, currentFilter = ViewBag.CurrentFilter })
+                    </th>
+                    <th class="table-headers fixed">
+                        @Html.ActionLink("Notification Date", "Update", new { sortOrder = ViewBag.DateSortParm, currentFilter = ViewBag.CurrentFilter })
+                    </th>
+                    <th></th>
+                </tr>
+                @{string emailList = string.Empty; }
+                @foreach (var item in Model)
+                {
+                    <tr class="text-center">
+                        <td>
+                            @Html.DisplayFor(modelItem => item.JPStudent.JPName)
+                        </td>
+                        <td class="text-center">
+                            @Html.DisplayFor(modelItem => item.Graduate)
+                        </td>
+                        <td class="text-center">
+                            @Html.DisplayFor(modelItem => item.Hire)
+                        </td>
+                        <td class="text-center">
+                                @Html.Label("JPNotificationDate", item.NotificationDate.ToShortDateString(), new { @class = "jpNotifications-UpdateView-Text" })
+                        </td>
+                        <td class="font20">
+                            @Html.ActionLink(HttpUtility.HtmlDecode(" &#x270E;"), "Edit", new { id = item.NotificationId }) <span class="JPNotificationsIcons">|</span>
+                            @{string emailString = item.JPStudent.JPEmail;} <!-- declaring empty email string -->
+                            @Html.ActionLink(HttpUtility.HtmlDecode(" &#9993; "), "Email", new { id = item.JPStudent.ApplicationUserId, email = "mailto:" + item.JPStudent.JPEmail })
+                            <span id="emailList">@{emailList += emailString + ",";}</span>
+                            <!-- concatenating emailString with next emailString to generate a list
+                that will be passed to controller for export to CSV-->
+                            <span class="JPNotificationsIcons">|</span> <a href="@Url.Action("Delete", new { id = item.NotificationId })" onclick="return delVerify()">&#x1f5d1</a> @*@Html.ActionLink(HttpUtility.HtmlDecode("&#x1f5d1;"), "Delete", new { id = item.NotificationId })*@ 
+
+
+                        </td>
+                    </tr>
+
+                }
+                @{
+                    int strLength = emailList.Length;
+                    emailList = emailList.Substring(0, (strLength - 1)); //removes last comma
+                }
+            </table>
+        <div>
+            <form style="display: inline" action="@Url.Action("EmailAll", new { emailList })" method="post" onsubmit="return emailStudents()">
+                    <button class="btn btn-primary">Email Students</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    
+    <script type="text/javascript">
+        $(".dropdown-toggle").dropdown();
+
+        function delVerify() {
+            return confirm("Are you sure you want to delete?");
+        }
+        
+    </script>
+}
