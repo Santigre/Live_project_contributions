@@ -19,6 +19,9 @@ namespace JobPlacementDashboard.Controllers
         {
             return View();
         }
+        
+        //Moved _MeetUpApi from JPBulletins Controller to JPMeetup Controller and made it work//
+
 
         public PartialViewResult _MeetUpApi()
         {
